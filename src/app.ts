@@ -7,7 +7,8 @@ import bodyParser from 'body-parser';
 const app = express();
 app.use(cors({
     origin: process.env.CORS_ORIGIN,
-    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use('/api/v1/orders/checkout/webhook',express.raw({ type: '*/*' }));
