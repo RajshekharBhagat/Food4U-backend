@@ -38,7 +38,7 @@ const createLineItem = (
     const line_item: Stripe.Checkout.SessionCreateParams.LineItem = {
       price_data: {
         currency: "inr",
-        unit_amount: menuItem.price * 100,
+        unit_amount: menuItem.price,
         product_data: {
           name: menuItem.name,
         },
