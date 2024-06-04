@@ -5,6 +5,7 @@ import Restaurant, { MenuItemType } from "../models/restaurant.model";
 import ApiError from "../utils/ApiError";
 import ApiResponse from "../utils/ApiResponse";
 import Order from "../models/order.model";
+import { error } from "console";
 
 const STRIPE = new Stripe(process.env.STRIPE_API_KEY as string);
 const FRONTEND_URL = process.env.FRONTEND_URL as string;
@@ -18,7 +19,7 @@ type CheckoutSessionRequest = {
   }[];
   deliveryDetails: {
     email: string;
-    username: string;
+    name: string;
     addressLine1: string;
     city: string;
   };
@@ -56,7 +57,7 @@ const createSession = async (
   restaurantId: string,
   deliveryDetails: {
     email: string;
-    username: string;
+    name: string;
     addressLine1: string;
     city: string;
   }
@@ -136,15 +137,45 @@ const stripeWebhookHandler = asyncHandler(
 
     if (event.type === "checkout.session.completed") {
       const order = await Order.findById(event.data.object.metadata?.orderId);
-      if(!order) {
-        throw new ApiError(404, 'Order not found');
+      if (!order) {
+        throw new ApiError(404, "Order not found");
       }
-      order.totalAmount = event.data.object.amount_total;
-      order.status = 'paid';
+      order.totalAmount = event.data.object.amount_total || 0;
+      order.status = "paid";
       await order.save();
-     }
-     res.status(200).send();
+    }
+    res.status(200).send();
   }
 );
 
-export { createCheckoutSession, stripeWebhookHandler };
+const getOrders = asyncHandler(async (req: Request, res: Response) => {
+  const order = await Order.find({ user: req.userId })
+    .populate("restaurant")
+    .populate("user");
+  if (!order) {
+    throw new ApiError(404, "Order not found");
+  }
+
+  return res.status(200).json(order);
+});
+
+const updateOrder = asyncHandler( async(req: Request, res: Response) => {
+  const { orderId } = req.params;
+  const {status} = req.body;
+
+  const order = await Order.findById(orderId);
+  if(!order) {
+    return new ApiResponse(404, 'Order not found');
+  };
+
+  const restaurant = await Restaurant.findById(order.restaurant);
+  if(restaurant?.user?._id.toString() !== req.userId) {
+    return new ApiResponse(401,'Not Authorized')
+  }
+
+  order.status = status;
+  await order.save();
+  return res.status(200).json(order);
+})
+
+export { createCheckoutSession, stripeWebhookHandler, getOrders, updateOrder };

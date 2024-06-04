@@ -1,15 +1,14 @@
 import mongoose from "mongoose";
 
+
 const orderSchema = new mongoose.Schema({
   restaurant: {
-    type: mongoose.Types.ObjectId,
-    ref: "Resturant",
-    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Restaurant",
   },
   user: {
-    type: mongoose.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: true,
   },
   deliveryDetails: {
     email: {

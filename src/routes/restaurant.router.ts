@@ -1,5 +1,5 @@
 import express from 'express';
-import {createRestaurant, getRestaurant, updateRestaurant} from '../controllers/restaurant.controller';
+import {createRestaurant, getRestaurant, getRestaurantOrder, updateRestaurant} from '../controllers/restaurant.controller';
 import { upload } from '../middlewares/multer.middleware';
 import { jwtCheck, verifyJwt } from '../middlewares/auth.middleware';
 import { validateRestaurantRequest } from '../middlewares/validation.middleware';
@@ -26,6 +26,12 @@ restaurantRouter.route('/updateRestaurant').put(
     jwtCheck,
     verifyJwt,
     updateRestaurant
+)
+
+restaurantRouter.route('/getRestaurantOrder').get(
+    jwtCheck,
+    verifyJwt,
+    getRestaurantOrder,
 )
 
 export default restaurantRouter;

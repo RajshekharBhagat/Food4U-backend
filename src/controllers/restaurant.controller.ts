@@ -6,6 +6,7 @@ import cloudinary from 'cloudinary';
 import ApiError from "../utils/ApiError";
 import mongoose from "mongoose";
 import { uploadOnCloudinary } from "../utils/Cloudinary";
+import Order from "../models/order.model";
 
 
 const createRestaurant = asyncHandler( async(req: Request, res: Response) => {
@@ -96,10 +97,29 @@ const updateRestaurant = asyncHandler ( async (req: Request, res: Response) => {
     .json(
         new ApiResponse(200,updateRestaurant, 'Restaurant Updated Successfully')
     )
-})
+});
+
+const getRestaurantOrder = asyncHandler( async(req: Request, res: Response) => {
+    const restaurant = await Restaurant.findOne({user: req.userId});
+    if(!restaurant) {
+        throw new ApiError(404, "Restaurant Not Found");
+    };
+
+    const order = await Order.find({ restaurant: restaurant._id}).populate('restaurant').populate('user');
+
+    if(!order) {
+        return new ApiResponse(404,'Order not found')
+    }
+
+    return res
+    .status(200)
+    .json(order);
+
+}); 
 
 export  { 
     createRestaurant,
     getRestaurant,
     updateRestaurant,
+    getRestaurantOrder
 }
